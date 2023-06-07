@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Piano Conversion</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background: #191919;
+            color: #ccc;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            padding-top: 4em;
+        }
+
+        h1 {
+            color: #fff;
+            font-size: 2em;
+            margin-bottom: 1em;
+        }
+
+        video,
+        audio {
+            max-width: 80%;
+            margin: 2em 0;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            outline: none;
+        }
+
+        button {
+            background: #444;
+            color: #ccc;
+            padding: 0.5em 1em;
+            margin: 0.5em;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: background-color 0.3s ease;
+            outline: none;
+        }
+
+        button:hover {
+            background: #555;
+        }
+
+        #button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2em;
+        }
+
+        .container {
+            /* padding: 6em 2em; */
+            /* margin: 10vh auto; */
+            margin: 2em auto;
+            max-width: 800px;
+            padding: 2em;
+            /* // 增加顶部和底部的外边距 */
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+
+        footer {
+            position: fixed;
+            left: 0;
+            bottom: 0;
+            width: 100%;
+            background: #111;
+            color: #aaa;
+            text-align: center;
+            padding: 0.5em 0;
+            font-size: 0.75em;
+        }
+
+        #project-intro {
+            background-color: #222;
+            padding: 1em 2em;   
+            border-radius: 10px;
+            color: #eee;
+            line-height: 1.5;
+            margin-bottom: 1em
+
+        #project-intro h2 {
+            color: #fff;
+            margin-bottom: 1em;
+        }
+
+        .active {
+            background-color: #191919;
+            color: white;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="container">
+        <h1>Timbre Conversion Demo</h1>
+
+
+        <div id="project-intro">
+            <h2>About this project</h2>
+            <p>
+                With more and more people falling in love with classical
+                music, there is a growing need to reproduce the
+                true timbre of Forte piano. Our project aims to do
+                just that, with a special focus on
+                transforming the sounds between modern piano and fortepiano.
+            </p>
+            <p>
+                We've used a blend of advanced techniques including
+                Variational Autoencoders (VAEs), Generative
+                Adversarial Networks (GANs), and a diffusion vocoder, to
+                produce and improve the quality of the audio.
+                After collecting and preprocessing samples from both Modern
+                piano and Fortepiano, we fed them into our
+                deep learning model.
+            </p>
+            <p>
+                Our initial tests have been promising and show potential in
+                achieving a certain degree of timbre
+                transformation. We hope this tool can offer music lovers a
+                fresh perspective and better understanding of
+                classical music.
+            </p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <!-- <video id="video" style="width: 100%;" controls>
+                    <source src="https://www.dropbox.com/s/48oy607780ggnw4/video.mp4?raw=1"
+                        type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+    
+                <audio id="audio" style="display:none;"></audio> -->
+
+            <video id="video" style="width: 100%;" controls preload="auto">
+                <source src="https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/video.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+
+            <audio id="audio" style="display:none;" preload="auto"></audio>
+
+
+            <div id="button-container">
+                <!-- <button onclick="changeAudio('https://www.dropbox.com/s/927faw7roe74j9u/bach.wav?raw=1')">Modern
+                        Piano</button>
+                    <button
+                        onclick="changeAudio('https://www.dropbox.com/s/c1jjs01wg7njs2m/result.wav?raw=1')">Fortepiano</button> -->
+
+                <!-- <button class=""
+                    onclick="changeAudio('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/bach.wav')">Modern
+                    Piano</button>
+                <button class=""
+                    onclick="changeAudio('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/result.wav')">Fortepiano</button> -->
+
+                <button
+                    onclick="changeAudioWithButtonState('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/bach.wav', this)">Modern
+                    Piano</button>
+                <button
+                    onclick="changeAudioWithButtonState('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/result.wav', this)">Fortepiano</button>
+
+
+            </div>
+        </div>
+
+
+        <footer>
+            © 2023 Piano Conversion. All rights reserved.
+        </footer>
+
+
+        <script async>
+            var audio = document.getElementById("audio");
+            var video = document.getElementById("video");
+
+            function syncPlayback() {
+                if (Math.abs(video.currentTime - audio.currentTime) > 0.1) {
+                    audio.currentTime = video.currentTime;
+                }
+            }
+
+            video.addEventListener('play', function () {
+                if (audio.readyState < 3 || video.readyState < 3) {
+                    var audioPromise = new Promise(function (resolve) {
+                        audio.oncanplaythrough = resolve;
+                    });
+                    var videoPromise = new Promise(function (resolve) {
+                        video.oncanplaythrough = resolve;
+                    });
+                    Promise.all([audioPromise, videoPromise]).then(function () {
+                        syncPlayback();
+                        setTimeout(function () {
+                            audio.play();
+                        }, 0);
+                        setTimeout(function () {
+                            video.play();
+                        }, 900);
+                    });
+                    video.pause();
+                } else {
+                    setTimeout(function () {
+                        audio.play();
+                    }, 0);
+                }
+            });
+
+            video.addEventListener('pause', function () {
+                audio.pause();
+            });
+
+            video.addEventListener('volumechange', function () {
+                audio.volume = video.volume;
+            });
+
+            video.addEventListener('seeked', function () {
+                if (audio.readyState >= 3 && video.readyState >= 3) {
+                    syncPlayback();
+                } else {
+                    var audioPromise = new Promise(function (resolve) {
+                        audio.oncanplaythrough = resolve;
+                    });
+                    var videoPromise = new Promise(function (resolve) {
+                        video.oncanplaythrough = resolve;
+                    });
+                    Promise.all([audioPromise, videoPromise]).then(syncPlayback);
+                }
+            });
+
+            video.addEventListener('ratechange', function () {
+                audio.playbackRate = video.playbackRate;
+            });
+
+            // function changeAudio(sourceUrl) {
+            //     var currentTime = video.currentTime;
+            //     var currentVolume = video.volume;
+            //     video.pause(); // pause the video when switching the audio source
+
+            //     var audioReady = new Promise(function (resolve) {
+            //         audio.oncanplaythrough = resolve;
+            //     });
+
+            //     var videoReady = Promise.resolve();
+
+            //     audio.src = sourceUrl;
+            //     audio.volume = currentVolume;
+            //     audio.load();
+
+            //     Promise.all([audioReady, videoReady]).then(function () {
+            //         audio.currentTime = currentTime;
+            //         audio.play(); // play the audio
+            //         video.play(); // play the video
+            //     });
+            // }
+
+            // function changeAudio(sourceUrl) {
+            //     var currentTime = video.currentTime;
+            //     var currentVolume = video.volume;
+            //     video.pause(); // pause the video when switching the audio source
+
+            //     var audioReady = new Promise(function (resolve) {
+            //         audio.onloadedmetadata = resolve;  // Change this line
+            //     });
+
+            //     var videoReady = Promise.resolve();
+
+            //     audio.src = sourceUrl;
+            //     audio.volume = currentVolume;
+            //     audio.load();
+
+            //     Promise.all([audioReady, videoReady]).then(function () {
+            //         try {
+            //             audio.currentTime = currentTime;
+            //             console.log(`Set audio currentTime to ${currentTime}, actual currentTime is ${audio.currentTime}`);  // Add debugging code
+            //         } catch (err) {
+            //             console.error(`Failed to set audio currentTime: ${err.message}`);
+            //         }
+            //         audio.play(); // play the audio
+            //         video.play(); // play the video
+            //     });
+            // }
+
+            function changeAudio(sourceUrl) {
+                var currentTime = video.currentTime;
+                var currentVolume = video.volume;
+                video.pause(); // pause the video when switching the audio source
+
+                var audioReady = new Promise(function (resolve) {
+                    audio.onloadedmetadata = resolve;
+                });
+
+                var videoReady = Promise.resolve();
+
+                audio.src = sourceUrl;
+                audio.volume = currentVolume;
+                audio.load();
+
+                Promise.all([audioReady, videoReady]).then(function () {
+                    try {
+                        audio.currentTime = currentTime;
+                        console.log(`Set audio currentTime to ${currentTime}, actual currentTime is ${audio.currentTime}`);  // Add debugging code
+                    } catch (err) {
+                        console.error(`Failed to set audio currentTime: ${err.message}`);
+                    }
+                    audio.play().then(function () {  // Add this line
+                        video.play();
+                    }).catch(function (error) {
+                        console.error('Failed to play audio: ', error);
+                    });
+                });
+            }
+
+
+
+            changeAudio('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/result.wav');
+
+            // new listeners for video and audio
+            video.addEventListener('waiting', function () {
+                if (!audio.paused) {
+                    audio.pause();
+                }
+            });
+
+            video.addEventListener('playing', function () {
+                if (audio.paused) {
+                    audio.play();
+                }
+            });
+
+            audio.addEventListener('waiting', function () {
+                if (!video.paused) {
+                    video.pause();
+                }
+            });
+
+            audio.addEventListener('playing', function () {
+                if (video.paused) {
+                    video.play();
+                }
+            });
+
+            document.getElementById("button-container").addEventListener("click", function (e) {
+                if (e.target.tagName === 'BUTTON') {
+                    if (e.target.textContent.trim() === 'Modern Piano') {
+                        changeAudio('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/bach.wav');
+                    } else if (e.target.textContent.trim() === 'Fortepiano') {
+                        changeAudio('https://demo-piano1.obs.ap-southeast-1.myhuaweicloud.com/result.wav');
+                    }
+                }
+            });
+
+            function changeButtonState(button) {
+                // Remove 'active' class from all buttons
+                document.querySelectorAll('#button-container button').forEach(btn => btn.classList.remove('active'));
+                // Add 'active' class to the clicked button
+                button.classList.add('active');
+            }
+
+            function changeAudioWithButtonState(sourceUrl, button) {
+                changeAudio(sourceUrl);
+                changeButtonState(button);
+            }
+
+        </script>
+    </div>
+</body>
+
+</html>
